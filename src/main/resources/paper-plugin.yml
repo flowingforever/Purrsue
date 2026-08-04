@@ -1,0 +1,18 @@
+name: Persue
+description: 'hai :3'
+version: '${version}'
+
+main: pro.fazeclan.river.persue.Persue
+bootstrapper: pro.fazeclan.river.persue.PersueBootstrap
+loader: pro.fazeclan.river.persue.PersueLoader
+api-version: '26.2'
+load: POSTWORLD
+
+authors: [ riversflowing ]
+website: https://github.com/flowingforever
+
+dependencies:
+  server:
+    Jarona:
+      load: BEFORE
+      required: true
