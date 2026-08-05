@@ -10,9 +10,9 @@ Currently unplayable, don't even try it just yet.
 
 ## Plans
 
-- [ ] Actual game loop
-  - [ ] Checking for when the timer runs out and blowing up the macer
-  - [ ] No macers left? Randomly hand out maces until one player/team remains!
+- [X] ~~Actual game loop~~
+  - [X] ~~Checking for when the timer runs out and blowing up the macer~~
+  - [X] ~~No macers left? Randomly hand out maces until one player/team remains!~~
 - [ ] Bounce Pads
   - [ ] Copper Grates
   - [ ] Pistons

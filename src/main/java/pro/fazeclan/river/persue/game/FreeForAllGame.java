@@ -2,8 +2,12 @@ package pro.fazeclan.river.persue.game;
 
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.Equippable;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.title.Title;
 import org.alexdev.unlimitednametags.api.UNTPaperAPI;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -14,9 +18,12 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemType;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import pro.fazeclan.river.jarona.game.Game;
+import pro.fazeclan.river.jarona.util.GameUtil;
+import pro.fazeclan.river.jarona.util.WorldUtil;
 import pro.fazeclan.river.jarona.util.WorldlessLocation;
 import pro.fazeclan.river.persue.Persue;
 import pro.fazeclan.river.persue.util.ItemUtil;
@@ -40,7 +47,6 @@ public class FreeForAllGame extends Game {
 
     @Override
     public void init(World world, List<Player> players) {
-        var api = UNTPaperAPI.getInstance();
         var config = YamlConfiguration.loadConfiguration(new File(world.getWorldFolder(), "map_config.yml"));
         var spawn = WorldlessLocation.deserialize("spawn", config).toLocation(world);
 
@@ -73,17 +79,40 @@ public class FreeForAllGame extends Game {
                 player.getEquipment().setChestplate(null);
             }
             TaggerUtil.setTagger(null, selected);
+            WorldUtil.setWorldValue(world, "round_started", PersistentDataType.BOOLEAN, true);
         });
     }
 
     @Override
     public void tick(World world, List<Player> players) {
+        if (!WorldUtil.getWorldValue(world, "round_started", PersistentDataType.BOOLEAN, false)) return;
 
+        if (TaggerUtil.getAlivePlayers(players).size() == 1) {
+            GameUtil.endGame(world);
+        }
+
+        long tick = WorldUtil.getWorldValue(world, "tick", PersistentDataType.LONG, 0L) + 1L;
+        double finalTime = WorldUtil.getWorldValue(world, "initial_time", PersistentDataType.DOUBLE, 19.0);
+        WorldUtil.setWorldValue(world, "tick", PersistentDataType.LONG, tick);
+
+        if (tick >= finalTime * 20L) {
+            TaggerUtil.blowUpAndReassign(players);
+        }
     }
 
     @Override
     public void end(World world, List<Player> players) {
+        var api = UNTPaperAPI.getInstance();
+        var winner = TaggerUtil.getAlivePlayers(players).getFirst();
+        var miniMessage = MiniMessage.miniMessage();
 
+        for (Player player : players) {
+            api.removeNametagOverride(player);
+            player.showTitle(Title.title(
+                    miniMessage.deserialize(winner.getName()),
+                    miniMessage.deserialize("<green>Wins!</green>")
+            ));
+        }
     }
 
 }

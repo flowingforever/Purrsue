@@ -31,4 +31,20 @@ public class GameListeners implements Listener {
         event.setCancelled(true);
     }
 
+    @EventHandler
+    private void handleExplosionDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player victim)) return;
+        if (!event.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION)) return;
+        if (!TaggerUtil.checkPlayerInProperWorld(victim)) return;
+        event.setCancelled(true);
+    }
+
+    @EventHandler
+    private void handleEntityExplosionDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player victim)) return;
+        if (!event.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) return;
+        if (!TaggerUtil.checkPlayerInProperWorld(victim)) return;
+        event.setCancelled(true);
+    }
+
 }
