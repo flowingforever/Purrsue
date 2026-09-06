@@ -1,4 +1,4 @@
-# Persue
+# Purrsue
 
 ### Requires [Jarona](https://github.com/flowingforever/Jarona) (and its dependencies)
 
@@ -16,8 +16,8 @@ Currently unplayable, don't even try it just yet.
 - [ ] Bounce Pads
   - [ ] Copper Grates
   - [ ] Pistons
-- [ ] Change wind charge velocity to be much more effective (maybe multiplied by some amount?)
-- [ ] Teams Mode (most likely delayed until parties are implemented in Jarona)
+- [X] Change wind charge velocity to be much more effective (maybe multiplied by some amount?)
+- [ ] Teams Mode
   - [ ] Assign Teams
     - [ ] Parties in the queue are randomly selected for teams first
   - [ ] Allow for dueling other teams

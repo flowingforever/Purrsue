@@ -1,1 +1,8 @@
 initial-time: 15 # seconds
+wind-charge-multiplier: 1.5
+wielder:
+  horizontal-knockback-multiplier: 0.5
+  vertical-knockback-multiplier: 1
+player:
+  horizontal-knockback-multiplier: 0.9
+  vertical-knockback-multiplier: 1

@@ -1,6 +1,7 @@
 package pro.fazeclan.river.purrsue;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import de.tr7zw.nbtapi.NBT;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import io.papermc.paper.command.brigadier.Commands;
@@ -40,7 +41,10 @@ public final class Purrsue extends JavaPlugin {
         });
 
         var pluginManager = getServer().getPluginManager();
-        pluginManager.registerEvents(new GameListeners(), this);
+        pluginManager.registerEvents(new GameListeners(this), this);
+
+        var packetListeners = PacketEvents.getAPI().getEventManager();
+        packetListeners.registerListener(new GameListeners(this), PacketListenerPriority.NORMAL);
 
         saveDefaultConfig();
     }

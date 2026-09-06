@@ -5,12 +5,15 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.SoundCategory;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemType;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import pro.fazeclan.river.jarona.condition.Condition;
 import pro.fazeclan.river.jarona.condition.TimedCondition;
+import pro.fazeclan.river.jarona.game.GameValues;
 import pro.fazeclan.river.jarona.util.ConditionUtil;
 import pro.fazeclan.river.jarona.util.NicknameUtil;
 import pro.fazeclan.river.jarona.util.WorldUtil;
@@ -21,7 +24,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class TaggerUtil {
 
-    public static void setTagger(@Nullable Player oldTagger, Player newTagger) {
+    public static void setTagger(@Nullable Player oldTagger, Player newTagger, GameValues values) {
         // visual changes (nametag & condition)
         var api = SignAPI.getNametagManager();
         api.get(newTagger).setLines(List.of(
@@ -29,10 +32,10 @@ public class TaggerUtil {
                 NicknameUtil.getNickname(newTagger)
         ));
         var world = newTagger.getWorld();
-        double initialTime = WorldUtil.getWorldValue(world, "initial_time", PersistentDataType.DOUBLE, 19.0);
-        long newTime = Math.max((long) (initialTime * 1000L) - 300, 9 * 1000L);
-        WorldUtil.setWorldValue(world, "initial_time", PersistentDataType.DOUBLE, newTime/1000.0);
-        WorldUtil.setWorldValue(world, "tick", PersistentDataType.LONG, 0L);
+        double initialTime = values.getValue("initial_time", 19 * 20L);
+        long newTime = Math.max((long) (initialTime * 20L) - 5, 9 * 20L);
+        values.setValue("initial_time", newTime / 20L);
+        values.setValue("tick", 0L);
         newTagger.addPotionEffect(new PotionEffect(
                 PotionEffectType.GLOWING,
                 -1,
@@ -45,18 +48,23 @@ public class TaggerUtil {
         var worldTC = ConditionUtil.getWorldConditions(world)
                         .getOrCreate(
                                 "game_" + world.getKey().value(),
-                                new TimedCondition(
-                                        TimedCondition.Type.MILLIS
-                                )
+                                new Condition() {
+                                    @Override
+                                    public boolean getAvailable() {
+                                        return true;
+                                    }
+
+                                    @Override
+                                    public void reset() {}
+                                }
                         );
 
-        worldTC.setHud(condition -> {
-            var tc = (TimedCondition) condition;
-            return "<red><sprite:items:item/mace> " + String.format("%.1f", tc.getDuration() / 1000.0) + "s</red>";
+        worldTC.setHud(_ -> {
+            var duration = values.getValue("initial_time", 20L) - values.getValue("tick", 0L);
+            return "<red><sprite:items:item/mace> " + String.format("%.1f", duration / 20.0) + "s</red>";
         });
 
         worldTC.setHudCondition((_, _) -> true);
-        worldTC.setDuration(newTime);
 
         // actually giving items
         newTagger.give(ItemUtil.generateMace());
@@ -79,11 +87,11 @@ public class TaggerUtil {
         }
     }
 
-    public static boolean checkPlayerInProperWorld(Player player) {
-        return player.getWorld().getKey().namespace().equalsIgnoreCase("purrsue");
+    public static boolean checkEntityInProperWorld(Entity entity) {
+        return entity.getWorld().getKey().namespace().equalsIgnoreCase("purrsue");
     }
 
-    public static void blowUpAndReassign(List<Player> players) {
+    public static void blowUpAndReassign(List<Player> players, GameValues values) {
         for (Player player : players) {
             if (player.getInventory().contains(Material.MACE)) {
                 var world = player.getWorld();
@@ -111,7 +119,7 @@ public class TaggerUtil {
         for (int i = 0; i < newTaggerAmount; i++) {
             int randomIndex = ThreadLocalRandom.current().nextInt(aliveCount);
             var tagger = alivePlayers.get(randomIndex);
-            setTagger(null, tagger);
+            setTagger(null, tagger, values);
         }
     }
 

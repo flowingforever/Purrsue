@@ -20,6 +20,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import pro.fazeclan.river.jarona.game.Game;
 import pro.fazeclan.river.jarona.util.GameUtil;
+import pro.fazeclan.river.jarona.util.NicknameUtil;
 import pro.fazeclan.river.jarona.util.WorldUtil;
 import pro.fazeclan.river.jarona.util.WorldlessLocation;
 import pro.fazeclan.river.purrsue.Purrsue;
@@ -70,30 +71,34 @@ public class FreeForAllGame extends Game {
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, true, false, false));
         }
 
+        var values = getGameValues(world.getUID());
+
         SpinUtil.arrangePlayers(spawn, 3.0, players);
         SpinUtil.spin(players, spawn, ItemUtil.generateMace(), selected -> {
             for (Player player : players) {
                 player.getEquipment().setChestplate(null);
             }
-            TaggerUtil.setTagger(null, selected);
-            WorldUtil.setWorldValue(world, "round_started", PersistentDataType.BOOLEAN, true);
+            TaggerUtil.setTagger(null, selected, values);
+            values.setValue("round_started", true);
         });
     }
 
     @Override
     public void tick(World world, List<Player> players) {
-        if (!WorldUtil.getWorldValue(world, "round_started", PersistentDataType.BOOLEAN, false)) return;
+        var values = getGameValues(world.getUID());
+        if (!values.getValue("round_started", false)) return;
 
         if (TaggerUtil.getAlivePlayers(players).size() == 1) {
             GameUtil.endGame(world);
+            return;
         }
 
-        long tick = WorldUtil.getWorldValue(world, "tick", PersistentDataType.LONG, 0L) + 1L;
-        double finalTime = WorldUtil.getWorldValue(world, "initial_time", PersistentDataType.DOUBLE, 19.0);
-        WorldUtil.setWorldValue(world, "tick", PersistentDataType.LONG, tick);
+        long tick = values.getValue("tick", 0L) + 1L;
+        double finalTime = values.getValue("initial_time", 19 * 20L);
+        values.setValue("tick", tick);
 
-        if (tick >= finalTime * 20L) {
-            TaggerUtil.blowUpAndReassign(players);
+        if (tick >= finalTime) {
+            TaggerUtil.blowUpAndReassign(players, values);
         }
     }
 
@@ -104,8 +109,8 @@ public class FreeForAllGame extends Game {
 
         for (Player player : players) {
             player.showTitle(Title.title(
-                    miniMessage.deserialize(winner.getName()),
-                    miniMessage.deserialize("<green>Wins!</green>")
+                    miniMessage.deserialize("<gray><<</gray> <head:" + winner.getUniqueId() + "> <gray>>></gray>"),
+                    miniMessage.deserialize("<green>" + NicknameUtil.getNickname(winner) + "<reset><green> wins!</green>")
             ));
         }
     }
