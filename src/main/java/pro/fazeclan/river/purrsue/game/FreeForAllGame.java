@@ -16,13 +16,11 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemType;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import pro.fazeclan.river.jarona.game.Game;
 import pro.fazeclan.river.jarona.util.GameUtil;
 import pro.fazeclan.river.jarona.util.NicknameUtil;
-import pro.fazeclan.river.jarona.util.WorldUtil;
 import pro.fazeclan.river.jarona.util.WorldlessLocation;
 import pro.fazeclan.river.purrsue.Purrsue;
 import pro.fazeclan.river.purrsue.util.ItemUtil;
@@ -75,13 +73,16 @@ public class FreeForAllGame extends Game {
         var values = getGameValues(world.getUID());
 
         SpinUtil.arrangePlayers(spawn, 3.0, players);
-        SpinUtil.spin(players, spawn, ItemUtil.generateMace(), selected -> {
-            for (Player player : players) {
-                player.getEquipment().setChestplate(null);
-            }
-            TaggerUtil.setTagger(null, selected, values);
-            values.setValue("round_started", true);
-        });
+        int newTaggerAmount = (int) Math.floor(players.size() / 4.0) + 1;
+        for (int i = 0; i < newTaggerAmount; i++) {
+            SpinUtil.spin(players, spawn, ItemUtil.generateMace(), selected -> {
+                for (Player player : players) {
+                    player.getEquipment().setChestplate(null);
+                }
+                TaggerUtil.setTagger(null, selected, values);
+                values.setValue("round_started", true);
+            });
+        }
     }
 
     @Override
@@ -95,12 +96,15 @@ public class FreeForAllGame extends Game {
             return;
         }
 
-        long tick = values.getValue("tick", 0L) + 1L;
-        double finalTime = values.getValue("initial_time", 19 * 20L);
-        values.setValue("tick", tick);
+        for (var wielder : TaggerUtil.getWielders(players)) {
+            long tick = values.getValue("tick_" + wielder.getUniqueId(), 0L) + 1L;
+            values.setValue("tick_" + wielder.getUniqueId(), tick);
+        }
 
-        if (tick >= finalTime) {
-            TaggerUtil.blowUpAndReassign(players, values);
+        TaggerUtil.blowUpIfNecessary(players, values);
+
+        if (TaggerUtil.getWielders(players).isEmpty()) {
+            TaggerUtil.reassignWielders(players, values);
         }
     }
 

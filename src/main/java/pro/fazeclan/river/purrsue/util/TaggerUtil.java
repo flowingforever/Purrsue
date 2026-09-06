@@ -24,10 +24,12 @@ public class TaggerUtil {
         // visual changes (nametag & condition)
         var world = newTagger.getWorld();
 
-        double initialTime = values.getValue("initial_time", 19 * 20L);
-        long newTime = Math.max((long) (initialTime * 20L) - 5, 9 * 20L);
-        values.setValue("initial_time", newTime / 20L);
-        values.setValue("tick", 0L);
+        double initialTime = values.getValue("initial_time_" + newTagger.getUniqueId(), 19 * 20L);
+        if (oldTagger != null) {
+            long newTime = Math.max((long) (initialTime * 20L) - 10, 9 * 20L);
+            values.setValue("initial_time_" + newTagger.getUniqueId(), newTime / 20L);
+        }
+        values.setValue("tick_" + newTagger.getUniqueId(), 0L);
         newTagger.addPotionEffect(new PotionEffect(
                 PotionEffectType.GLOWING,
                 -1,
@@ -37,24 +39,31 @@ public class TaggerUtil {
                 true
         ));
 
-        var worldTC = ConditionUtil.getWorldConditions(world)
-                        .getOrCreate(
-                                "game_" + world.getKey().value(),
-                                new Condition() {
-                                    @Override
-                                    public boolean getAvailable() {
-                                        return true;
-                                    }
+        var condition = ConditionUtil.getPlayerConditions(newTagger)
+                .getOrCreate(
+                        "tagger",
+                        new Condition() {
+                            @Override
+                            public boolean getAvailable() {
+                                return true;
+                            }
 
-                                    @Override
-                                    public void reset() {}
-                                }
-                        );
+                            @Override
+                            public void reset() {
 
-        worldTC.setHud(_ -> {
-            var duration = values.getValue("initial_time", 20L) - values.getValue("tick", 0L);
-            return "<red><sprite:blocks:block/tnt_side> " + String.format("%.1f", duration / 20.0) + "s</red>";
+                            }
+                        }
+                );
+
+        condition.setHud(_ -> {
+            var duration = Math.max(
+                    0,
+                    values.getValue("initial_time_" + newTagger.getUniqueId(), 19 * 20L) - values.getValue("tick_" + newTagger.getUniqueId(), 0L)
+            );
+            return "<red>You'll explode in</red> <sprite:blocks:block/tnt_side> <red>" + String.format("%.1f", duration / 20.0) + "s!</red>";
         });
+        condition.setHudCondition((_, p) -> p.hasPotionEffect(PotionEffectType.GLOWING));
+
         world.spawn(newTagger.getLocation().clone().setRotation(0, 0), TextDisplay.class, td -> {
             var mm = MiniMessage.miniMessage();
             var transformation = td.getTransformation();
@@ -62,6 +71,7 @@ public class TaggerUtil {
             transformation.getTranslation().add(0.0f, 0.5f, 0.0f);
             td.setBillboard(Display.Billboard.CENTER);
             td.setTransformation(transformation);
+            td.setSeeThrough(true);
 
             Bukkit.getScheduler().runTaskTimer(
                     Purrsue.getInstance(),
@@ -70,8 +80,11 @@ public class TaggerUtil {
                             task.cancel();
                         }
 
-                        double duration = (values.getValue("initial_time", 20L) - values.getValue("tick", 0L)) / 20.0;
-                        td.text(mm.deserialize("<red><sprite:blocks:block/tnt_side> " + String.format("%.1f", duration) + "s</red>"));
+                        double duration = Math.max(
+                                0,
+                                values.getValue("initial_time_" + newTagger.getUniqueId(), 19 * 20L) - values.getValue("tick_" + newTagger.getUniqueId(), 0L)
+                        ) / 20.0;
+                        td.text(mm.deserialize("<sprite:blocks:block/tnt_side> <red>" + String.format("%.1f", duration) + "s</red>"));
                     },
                     0,
                     2
@@ -79,8 +92,6 @@ public class TaggerUtil {
 
             newTagger.addPassenger(td);
         });
-
-        worldTC.setHudCondition((_, _) -> true);
 
         // actually giving items
         newTagger.give(ItemUtil.generateMace());
@@ -111,36 +122,11 @@ public class TaggerUtil {
         return entity.getWorld().getKey().namespace().equalsIgnoreCase("purrsue");
     }
 
-    public static void blowUpAndReassign(List<Player> players, GameValues values) {
-        for (Player player : players) {
-            if (player.hasPotionEffect(PotionEffectType.GLOWING)) {
-                var world = player.getWorld();
-                for (var entity : player.getPassengers()) {
-                    if (entity instanceof TextDisplay) {
-                        entity.remove();
-                    }
-                }
-                player.setGameMode(GameMode.SPECTATOR);
-                world.spawnParticle(
-                        Particle.EXPLOSION,
-                        player.getLocation(),
-                        20,
-                        1, 1, 1
-                );
-                world.playSound(
-                        player.getLocation(),
-                        "minecraft:entity.generic.explode",
-                        SoundCategory.PLAYERS,
-                        1f,
-                        1f
-                );
-            }
-        }
-
+    public static void reassignWielders(List<Player> players, GameValues values) {
         var alivePlayers = getAlivePlayers(players);
         int aliveCount = alivePlayers.size();
         if (alivePlayers.isEmpty()) return;
-        int newTaggerAmount = Math.max(1, (int) Math.round(aliveCount / 4.0));
+        int newTaggerAmount = (int) Math.floor(aliveCount / 4.0) + 1;
         for (int i = 0; i < newTaggerAmount; i++) {
             int randomIndex = ThreadLocalRandom.current().nextInt(aliveCount);
             var tagger = alivePlayers.get(randomIndex);
@@ -148,8 +134,40 @@ public class TaggerUtil {
         }
     }
 
+    public static void blowUpIfNecessary(List<Player> players, GameValues values) {
+        for (Player wielder : getWielders(players)) {
+            if (values.getValue("tick_" + wielder.getUniqueId(), 0L) <= values.getValue("initial_time_" + wielder.getUniqueId(), 19 * 20L)) continue;
+
+            var world = wielder.getWorld();
+            for (var entity : wielder.getPassengers()) {
+                if (entity instanceof TextDisplay) {
+                    entity.remove();
+                }
+            }
+            wielder.setGameMode(GameMode.SPECTATOR);
+            wielder.removePotionEffect(PotionEffectType.GLOWING);
+            world.spawnParticle(
+                    Particle.EXPLOSION,
+                    wielder.getLocation(),
+                    20,
+                    1, 1, 1
+            );
+            world.playSound(
+                    wielder.getLocation(),
+                    "minecraft:entity.generic.explode",
+                    SoundCategory.PLAYERS,
+                    1f,
+                    1f
+            );
+        }
+    }
+
     public static List<Player> getAlivePlayers(List<Player> players) {
         return players.stream().filter(player -> !player.getGameMode().isInvulnerable()).toList();
+    }
+
+    public static List<Player> getWielders(List<Player> players) {
+        return getAlivePlayers(players).stream().filter(p -> p.hasPotionEffect(PotionEffectType.GLOWING)).toList();
     }
 
 }
