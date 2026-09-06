@@ -11,6 +11,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
@@ -90,6 +91,7 @@ public class FreeForAllGame extends Game {
 
         if (TaggerUtil.getAlivePlayers(players).size() == 1) {
             GameUtil.endGame(world);
+            values.setValue("round_started", false);
             return;
         }
 
@@ -112,6 +114,12 @@ public class FreeForAllGame extends Game {
                     miniMessage.deserialize("<gray><<</gray> <head:" + winner.getUniqueId() + "> <gray>>></gray>"),
                     miniMessage.deserialize("<green>" + NicknameUtil.getNickname(winner) + "<reset><green> wins!</green>")
             ));
+
+            for (var passenger : player.getPassengers()) { // otherwise players will not be able to get teleported out
+                if (passenger instanceof TextDisplay) {
+                    passenger.remove();
+                }
+            }
         }
     }
 

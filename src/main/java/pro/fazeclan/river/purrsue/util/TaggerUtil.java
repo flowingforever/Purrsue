@@ -1,22 +1,18 @@
 package pro.fazeclan.river.purrsue.util;
 
-import gg.lode.sign.api.SignAPI;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.SoundCategory;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.*;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemType;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import pro.fazeclan.river.jarona.condition.Condition;
-import pro.fazeclan.river.jarona.condition.TimedCondition;
 import pro.fazeclan.river.jarona.game.GameValues;
 import pro.fazeclan.river.jarona.util.ConditionUtil;
-import pro.fazeclan.river.jarona.util.NicknameUtil;
-import pro.fazeclan.river.jarona.util.WorldUtil;
+import pro.fazeclan.river.purrsue.Purrsue;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -26,12 +22,8 @@ public class TaggerUtil {
 
     public static void setTagger(@Nullable Player oldTagger, Player newTagger, GameValues values) {
         // visual changes (nametag & condition)
-        var api = SignAPI.getNametagManager();
-        api.get(newTagger).setLines(List.of(
-                "<red><shadow:#000000FF>TAGGED</shadow></red>",
-                NicknameUtil.getNickname(newTagger)
-        ));
         var world = newTagger.getWorld();
+
         double initialTime = values.getValue("initial_time", 19 * 20L);
         long newTime = Math.max((long) (initialTime * 20L) - 5, 9 * 20L);
         values.setValue("initial_time", newTime / 20L);
@@ -61,7 +53,31 @@ public class TaggerUtil {
 
         worldTC.setHud(_ -> {
             var duration = values.getValue("initial_time", 20L) - values.getValue("tick", 0L);
-            return "<red><sprite:items:item/mace> " + String.format("%.1f", duration / 20.0) + "s</red>";
+            return "<red><sprite:blocks:block/tnt_side> " + String.format("%.1f", duration / 20.0) + "s</red>";
+        });
+        world.spawn(newTagger.getLocation().clone().setRotation(0, 0), TextDisplay.class, td -> {
+            var mm = MiniMessage.miniMessage();
+            var transformation = td.getTransformation();
+            transformation.getScale().set(2.0, 2.0, 2.0);
+            transformation.getTranslation().add(0.0f, 0.5f, 0.0f);
+            td.setBillboard(Display.Billboard.CENTER);
+            td.setTransformation(transformation);
+
+            Bukkit.getScheduler().runTaskTimer(
+                    Purrsue.getInstance(),
+                    task -> {
+                        if (!td.isValid()) {
+                            task.cancel();
+                        }
+
+                        double duration = (values.getValue("initial_time", 20L) - values.getValue("tick", 0L)) / 20.0;
+                        td.text(mm.deserialize("<red><sprite:blocks:block/tnt_side> " + String.format("%.1f", duration) + "s</red>"));
+                    },
+                    0,
+                    2
+            );
+
+            newTagger.addPassenger(td);
         });
 
         worldTC.setHudCondition((_, _) -> true);
@@ -72,7 +88,11 @@ public class TaggerUtil {
 
         if (oldTagger != null) {
             // visual changes (nametag)
-            api.get(oldTagger).setLines(List.of(NicknameUtil.getNickname(oldTagger)));
+            for (var entity : oldTagger.getPassengers()) {
+                if (entity instanceof TextDisplay) {
+                    entity.remove();
+                }
+            }
             oldTagger.removePotionEffect(PotionEffectType.GLOWING);
 
             // actually removing items
@@ -93,8 +113,13 @@ public class TaggerUtil {
 
     public static void blowUpAndReassign(List<Player> players, GameValues values) {
         for (Player player : players) {
-            if (player.getInventory().contains(Material.MACE)) {
+            if (player.hasPotionEffect(PotionEffectType.GLOWING)) {
                 var world = player.getWorld();
+                for (var entity : player.getPassengers()) {
+                    if (entity instanceof TextDisplay) {
+                        entity.remove();
+                    }
+                }
                 player.setGameMode(GameMode.SPECTATOR);
                 world.spawnParticle(
                         Particle.EXPLOSION,
