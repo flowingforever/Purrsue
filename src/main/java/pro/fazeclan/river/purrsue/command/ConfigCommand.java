@@ -1,10 +1,10 @@
-package pro.fazeclan.river.persue.command;
+package pro.fazeclan.river.purrsue.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
-import pro.fazeclan.river.persue.Persue;
+import pro.fazeclan.river.purrsue.Purrsue;
 
 public class ConfigCommand {
 
@@ -13,7 +13,7 @@ public class ConfigCommand {
                 .requires(ctx -> ctx.getSender().hasPermission("persue.admin.config"))
                 .then(Commands.literal("reload")
                         .executes(ctx -> {
-                            Persue.getInstance().reloadConfig();
+                            Purrsue.getInstance().reloadConfig();
 
                             return Command.SINGLE_SUCCESS;
                         })

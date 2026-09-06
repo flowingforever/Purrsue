@@ -1,4 +1,4 @@
-package pro.fazeclan.river.persue;
+package pro.fazeclan.river.purrsue;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import de.tr7zw.nbtapi.NBT;
@@ -8,12 +8,12 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 import pro.fazeclan.river.jarona.Jarona;
-import pro.fazeclan.river.persue.command.ConfigCommand;
-import pro.fazeclan.river.persue.command.TestCommand;
-import pro.fazeclan.river.persue.game.FreeForAllGame;
-import pro.fazeclan.river.persue.listener.GameListeners;
+import pro.fazeclan.river.purrsue.command.ConfigCommand;
+import pro.fazeclan.river.purrsue.command.TestCommand;
+import pro.fazeclan.river.purrsue.game.FreeForAllGame;
+import pro.fazeclan.river.purrsue.listener.GameListeners;
 
-public final class Persue extends JavaPlugin {
+public final class Purrsue extends JavaPlugin {
 
     @Override
     public void onLoad() {
@@ -31,7 +31,7 @@ public final class Persue extends JavaPlugin {
         var gameManager = Jarona.getInstance().getGameManager();
         gameManager.register(new FreeForAllGame());
 
-        var command = Commands.literal("persue")
+        var command = Commands.literal("purrsue")
                 .then(TestCommand.command())
                 .then(ConfigCommand.command())
                 .build();
@@ -51,12 +51,12 @@ public final class Persue extends JavaPlugin {
         PacketEvents.getAPI().terminate();
     }
 
-    public static Persue getInstance() {
-        return JavaPlugin.getPlugin(Persue.class);
+    public static Purrsue getInstance() {
+        return JavaPlugin.getPlugin(Purrsue.class);
     }
 
     public static NamespacedKey getKey(String key) {
-        return new NamespacedKey("persue", key);
+        return new NamespacedKey("purrsue", key);
     }
 
 }

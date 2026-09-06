@@ -1,10 +1,8 @@
-name: Persue
+name: Purrsue
 description: 'hai :3'
 version: '${version}'
 
-main: pro.fazeclan.river.persue.Persue
-bootstrapper: pro.fazeclan.river.persue.PersueBootstrap
-loader: pro.fazeclan.river.persue.PersueLoader
+main: pro.fazeclan.river.purrsue.Purrsue
 api-version: '26.2'
 load: POSTWORLD
 

@@ -1,13 +1,10 @@
-package pro.fazeclan.river.persue.game;
+package pro.fazeclan.river.purrsue.game;
 
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.Equippable;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
-import org.alexdev.unlimitednametags.api.UNTPaperAPI;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -25,10 +22,10 @@ import pro.fazeclan.river.jarona.game.Game;
 import pro.fazeclan.river.jarona.util.GameUtil;
 import pro.fazeclan.river.jarona.util.WorldUtil;
 import pro.fazeclan.river.jarona.util.WorldlessLocation;
-import pro.fazeclan.river.persue.Persue;
-import pro.fazeclan.river.persue.util.ItemUtil;
-import pro.fazeclan.river.persue.util.SpinUtil;
-import pro.fazeclan.river.persue.util.TaggerUtil;
+import pro.fazeclan.river.purrsue.Purrsue;
+import pro.fazeclan.river.purrsue.util.ItemUtil;
+import pro.fazeclan.river.purrsue.util.SpinUtil;
+import pro.fazeclan.river.purrsue.util.TaggerUtil;
 
 import java.io.File;
 import java.util.List;
@@ -37,11 +34,11 @@ public class FreeForAllGame extends Game {
 
     public FreeForAllGame() {
         super(
-                "<green>Persue: Free For All</green>",
-                Persue.getKey("ffa"),
+                "<green>Purrsue: FFA</green>",
+                Purrsue.getKey("ffa"),
                 true,
                 true,
-                4
+                2
         );
     }
 
@@ -52,13 +49,13 @@ public class FreeForAllGame extends Game {
 
         var movementBlocker = ItemType.GRAY_STAINED_GLASS_PANE.createItemStack(meta -> {
             meta.addAttributeModifier(Attribute.JUMP_STRENGTH, new AttributeModifier(
-                    Persue.getKey("jump_strength"),
+                    Purrsue.getKey("jump_strength"),
                     -1.0,
                     AttributeModifier.Operation.ADD_SCALAR,
                     EquipmentSlotGroup.CHEST
             ));
             meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(
-                    Persue.getKey("movement_speed"),
+                    Purrsue.getKey("movement_speed"),
                     -1.0,
                     AttributeModifier.Operation.ADD_SCALAR,
                     EquipmentSlotGroup.CHEST
@@ -102,12 +99,10 @@ public class FreeForAllGame extends Game {
 
     @Override
     public void end(World world, List<Player> players) {
-        var api = UNTPaperAPI.getInstance();
         var winner = TaggerUtil.getAlivePlayers(players).getFirst();
         var miniMessage = MiniMessage.miniMessage();
 
         for (Player player : players) {
-            api.removeNametagOverride(player);
             player.showTitle(Title.title(
                     miniMessage.deserialize(winner.getName()),
                     miniMessage.deserialize("<green>Wins!</green>")

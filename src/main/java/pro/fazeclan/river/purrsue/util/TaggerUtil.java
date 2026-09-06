@@ -1,18 +1,21 @@
-package pro.fazeclan.river.persue.util;
+package pro.fazeclan.river.purrsue.util;
 
-import org.alexdev.unlimitednametags.api.UNTPaperAPI;
-import org.alexdev.unlimitednametags.config.Settings;
+import gg.lode.sign.api.SignAPI;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemType;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import pro.fazeclan.river.jarona.condition.TimedCondition;
 import pro.fazeclan.river.jarona.util.ConditionUtil;
+import pro.fazeclan.river.jarona.util.NicknameUtil;
 import pro.fazeclan.river.jarona.util.WorldUtil;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -20,21 +23,24 @@ public class TaggerUtil {
 
     public static void setTagger(@Nullable Player oldTagger, Player newTagger) {
         // visual changes (nametag & condition)
-        var api = UNTPaperAPI.getInstance();
-        api.modifyNametagProperty(newTagger, current -> {
-            var groups = new ArrayList<>(current.displayGroups());
-            groups.add(Settings.DisplayGroup.builder()
-                            .line("<red><shadow:#000000FF>TAGGED</shadow></red>")
-                            .scale(2f)
-                            .yOffset(0f)
-                    .build());
-            return current.withDisplayGroups(groups);
-        });
+        var api = SignAPI.getNametagManager();
+        api.get(newTagger).setLines(List.of(
+                "<red><shadow:#000000FF>TAGGED</shadow></red>",
+                NicknameUtil.getNickname(newTagger)
+        ));
         var world = newTagger.getWorld();
         double initialTime = WorldUtil.getWorldValue(world, "initial_time", PersistentDataType.DOUBLE, 19.0);
         long newTime = Math.max((long) (initialTime * 1000L) - 300, 9 * 1000L);
         WorldUtil.setWorldValue(world, "initial_time", PersistentDataType.DOUBLE, newTime/1000.0);
         WorldUtil.setWorldValue(world, "tick", PersistentDataType.LONG, 0L);
+        newTagger.addPotionEffect(new PotionEffect(
+                PotionEffectType.GLOWING,
+                -1,
+                0,
+                true,
+                false,
+                true
+        ));
 
         var worldTC = ConditionUtil.getWorldConditions(world)
                         .getOrCreate(
@@ -49,7 +55,7 @@ public class TaggerUtil {
             return "<red><sprite:items:item/mace> " + String.format("%.1f", tc.getDuration() / 1000.0) + "s</red>";
         });
 
-        worldTC.setHudCondition(_ -> true);
+        worldTC.setHudCondition((_, _) -> true);
         worldTC.setDuration(newTime);
 
         // actually giving items
@@ -58,11 +64,8 @@ public class TaggerUtil {
 
         if (oldTagger != null) {
             // visual changes (nametag)
-            api.modifyNametagProperty(oldTagger, current -> {
-                var groups = new ArrayList<>(current.displayGroups());
-                groups.removeLast();
-                return current.withDisplayGroups(groups);
-            });
+            api.get(oldTagger).setLines(List.of(NicknameUtil.getNickname(oldTagger)));
+            oldTagger.removePotionEffect(PotionEffectType.GLOWING);
 
             // actually removing items
             var oldTaggerInventory = oldTagger.getInventory();
@@ -77,16 +80,27 @@ public class TaggerUtil {
     }
 
     public static boolean checkPlayerInProperWorld(Player player) {
-        return player.getWorld().getKey().namespace().equalsIgnoreCase("persue");
+        return player.getWorld().getKey().namespace().equalsIgnoreCase("purrsue");
     }
 
     public static void blowUpAndReassign(List<Player> players) {
         for (Player player : players) {
             if (player.getInventory().contains(Material.MACE)) {
                 var world = player.getWorld();
-                var loc = player.getLocation();
                 player.setGameMode(GameMode.SPECTATOR);
-                world.createExplosion(loc.getX(), loc.getY(), loc.getZ(), 5f, false, false);
+                world.spawnParticle(
+                        Particle.EXPLOSION,
+                        player.getLocation(),
+                        20,
+                        1, 1, 1
+                );
+                world.playSound(
+                        player.getLocation(),
+                        "minecraft:entity.generic.explode",
+                        SoundCategory.PLAYERS,
+                        1f,
+                        1f
+                );
             }
         }
 

@@ -1,11 +1,11 @@
-package pro.fazeclan.river.persue.util;
+package pro.fazeclan.river.purrsue.util;
 
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ItemType;
-import pro.fazeclan.river.persue.Persue;
+import pro.fazeclan.river.purrsue.Purrsue;
 
 public class ItemUtil {
 
@@ -13,11 +13,11 @@ public class ItemUtil {
         return ItemType.MACE.createItemStack(meta -> {
             meta.addAttributeModifier(
                     Attribute.ATTACK_DAMAGE,
-                    new AttributeModifier(Persue.getKey("base_mace_damage"), 5, AttributeModifier.Operation.ADD_NUMBER)
+                    new AttributeModifier(Purrsue.getKey("base_mace_damage"), 5, AttributeModifier.Operation.ADD_NUMBER)
             );
             meta.addAttributeModifier(
                     Attribute.ATTACK_SPEED,
-                    new AttributeModifier(Persue.getKey("base_mace_speed"), 3.4, AttributeModifier.Operation.ADD_NUMBER)
+                    new AttributeModifier(Purrsue.getKey("base_mace_speed"), 3.4, AttributeModifier.Operation.ADD_NUMBER)
             );
             meta.setUnbreakable(true);
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);

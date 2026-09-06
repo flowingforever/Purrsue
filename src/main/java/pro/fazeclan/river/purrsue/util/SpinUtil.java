@@ -1,4 +1,4 @@
-package pro.fazeclan.river.persue.util;
+package pro.fazeclan.river.purrsue.util;
 
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -11,7 +11,7 @@ import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import pro.fazeclan.river.persue.Persue;
+import pro.fazeclan.river.purrsue.Purrsue;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -71,7 +71,7 @@ public class SpinUtil {
 
                 pointedPlayer = newPointed;
             }
-        }.runTaskTimer(Persue.getInstance(), 0L, 1L);
+        }.runTaskTimer(Purrsue.getInstance(), 0L, 1L);
     }
 
     public static void arrangePlayers(Location center, double radius, List<Player> players) {

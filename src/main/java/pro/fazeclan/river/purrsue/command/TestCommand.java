@@ -1,4 +1,4 @@
-package pro.fazeclan.river.persue.command;
+package pro.fazeclan.river.purrsue.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -8,8 +8,8 @@ import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import io.papermc.paper.command.brigadier.argument.resolvers.FinePositionResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import pro.fazeclan.river.persue.util.ItemUtil;
-import pro.fazeclan.river.persue.util.SpinUtil;
+import pro.fazeclan.river.purrsue.util.ItemUtil;
+import pro.fazeclan.river.purrsue.util.SpinUtil;
 
 import java.util.List;
 

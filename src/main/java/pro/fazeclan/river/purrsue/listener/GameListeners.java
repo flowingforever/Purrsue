@@ -1,4 +1,4 @@
-package pro.fazeclan.river.persue.listener;
+package pro.fazeclan.river.purrsue.listener;
 
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -7,7 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import pro.fazeclan.river.persue.util.TaggerUtil;
+import pro.fazeclan.river.purrsue.util.TaggerUtil;
 
 public class GameListeners implements Listener {
 
