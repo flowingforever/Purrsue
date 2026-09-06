@@ -2,21 +2,16 @@
 
 ### Requires [Jarona](https://github.com/flowingforever/Jarona) (and its dependencies)
 
-I wanted to recreate that one Showdown minigame on DiamondFire, so I'm doing that!
+I wanted to make my own take on the Hunt minigame on the Showdown DiamondFire plot! (/join showdown)
 
-This is less of a 1-to-1 recreation of every single mechanic on there, and more so the idea of "What would I do differently if I made Hunt myself?"
-
-Currently unplayable, don't even try it just yet.
+## Current State
+As of right now, the game is playable! Though, it is missing a lot of features that I do want to add below. So, do be aware of that if you build this plugin yourself.
 
 ## Plans
 
-- [X] ~~Actual game loop~~
-  - [X] ~~Checking for when the timer runs out and blowing up the macer~~
-  - [X] ~~No macers left? Randomly hand out maces until one player/team remains!~~
 - [ ] Bounce Pads
   - [ ] Copper Grates
   - [ ] Pistons
-- [X] Change wind charge velocity to be much more effective (maybe multiplied by some amount?)
 - [ ] Teams Mode
   - [ ] Assign Teams
     - [ ] Parties in the queue are randomly selected for teams first
