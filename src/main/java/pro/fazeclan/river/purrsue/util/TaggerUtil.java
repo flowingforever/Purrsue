@@ -1,5 +1,6 @@
 package pro.fazeclan.river.purrsue.util;
 
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.*;
 import org.bukkit.entity.Display;
@@ -23,10 +24,18 @@ public class TaggerUtil {
     public static void setTagger(@Nullable Player oldTagger, Player newTagger, GameValues values) {
         // visual changes (nametag & condition)
         var world = newTagger.getWorld();
+        var config = Purrsue.getInstance().getConfig();
 
-        double initialTime = values.getValue("initial_time_" + newTagger.getUniqueId(), 19 * 20L);
+        long defTime = config.getLong("initial-time") * 20L;
+        long initialTime = values.getValue(
+                "initial_time_" + newTagger.getUniqueId(),
+                defTime
+        );
         if (oldTagger != null) {
-            long newTime = Math.max((long) (initialTime * 20L) - 10, 9 * 20L);
+            long newTime = Math.max(
+                    (initialTime * 20L) - config.getLong("decrement-per-pass", 10),
+                    config.getLong("minimum-time", 9) * 20L
+            );
             values.setValue("initial_time_" + newTagger.getUniqueId(), newTime / 20L);
         }
         values.setValue("tick_" + newTagger.getUniqueId(), 0L);
@@ -58,7 +67,7 @@ public class TaggerUtil {
         condition.setHud(_ -> {
             var duration = Math.max(
                     0,
-                    values.getValue("initial_time_" + newTagger.getUniqueId(), 19 * 20L) - values.getValue("tick_" + newTagger.getUniqueId(), 0L)
+                    values.getValue("initial_time_" + newTagger.getUniqueId(), defTime) - values.getValue("tick_" + newTagger.getUniqueId(), 0L)
             );
             return "<red>You'll explode in</red> <sprite:blocks:block/tnt_side> <red>" + String.format("%.1f", duration / 20.0) + "s!</red>";
         });
@@ -82,7 +91,7 @@ public class TaggerUtil {
 
                         double duration = Math.max(
                                 0,
-                                values.getValue("initial_time_" + newTagger.getUniqueId(), 19 * 20L) - values.getValue("tick_" + newTagger.getUniqueId(), 0L)
+                                values.getValue("initial_time_" + newTagger.getUniqueId(), defTime) - values.getValue("tick_" + newTagger.getUniqueId(), 0L)
                         ) / 20.0;
                         td.text(mm.deserialize("<sprite:blocks:block/tnt_side> <red>" + String.format("%.1f", duration) + "s</red>"));
                     },
@@ -92,6 +101,9 @@ public class TaggerUtil {
 
             newTagger.addPassenger(td);
         });
+
+        // set glow color of players
+        GlowUtil.setGlowOfPlayerToWorld(world, newTagger, NamedTextColor.RED);
 
         // actually giving items
         newTagger.give(ItemUtil.generateMace());
@@ -123,10 +135,11 @@ public class TaggerUtil {
     }
 
     public static void reassignWielders(List<Player> players, GameValues values) {
+        var config = Purrsue.getInstance().getConfig();
         var alivePlayers = getAlivePlayers(players);
         int aliveCount = alivePlayers.size();
         if (alivePlayers.isEmpty()) return;
-        int newTaggerAmount = (int) Math.floor(aliveCount / 4.0) + 1;
+        int newTaggerAmount = (int) Math.floor(aliveCount / config.getDouble("wielder-dividend", 4.0)) + 1;
         for (int i = 0; i < newTaggerAmount; i++) {
             int randomIndex = ThreadLocalRandom.current().nextInt(aliveCount);
             var tagger = alivePlayers.get(randomIndex);
@@ -135,8 +148,10 @@ public class TaggerUtil {
     }
 
     public static void blowUpIfNecessary(List<Player> players, GameValues values) {
+        var config = Purrsue.getInstance().getConfig();
+        long defTime = config.getLong("initial-time", 19) * 20L;
         for (Player wielder : getWielders(players)) {
-            if (values.getValue("tick_" + wielder.getUniqueId(), 0L) <= values.getValue("initial_time_" + wielder.getUniqueId(), 19 * 20L)) continue;
+            if (values.getValue("tick_" + wielder.getUniqueId(), 0L) <= values.getValue("initial_time_" + wielder.getUniqueId(), defTime)) continue;
 
             var world = wielder.getWorld();
             for (var entity : wielder.getPassengers()) {

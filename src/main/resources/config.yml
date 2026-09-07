@@ -1,8 +1,26 @@
-initial-time: 15 # seconds
+# The amount of time the macers start with when they are selected to get a mace.
+initial-time: 19 # seconds
+
+# The amount of ticks that goes down with each mace pass.
+decrement-per-pass: 10 # ticks
+
+# The lowest amount of time a player can get when the mace is passed to them.
+minimum-time: 9 # seconds
+
+# The knockback multiplier that is applied onto wind charge knockback.
 wind-charge-multiplier: 1.5
-wielder:
+
+# The dividend for the wielder amount
+wielder-dividend: 4.0
+
+# The knockback multipliers that are applied when the wielder takes knockback
+# from sources other than explosions. (like wind charges)
+wielder: # weapon wielder knockback multipliers
   horizontal-knockback-multiplier: 0.5
   vertical-knockback-multiplier: 1
-player:
+
+# The knockback multipliers that are applied when the player takes knockback
+# from sources other than explosions. (like wind charges)
+player: # regular player knockback multipliers
   horizontal-knockback-multiplier: 0.9
   vertical-knockback-multiplier: 1

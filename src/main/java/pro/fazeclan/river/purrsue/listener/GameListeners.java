@@ -7,6 +7,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEn
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfoUpdate;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.WindCharge;
@@ -18,7 +19,9 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.potion.PotionEffectType;
 import pro.fazeclan.river.jarona.util.GameUtil;
 import pro.fazeclan.river.purrsue.Purrsue;
+import pro.fazeclan.river.purrsue.util.MessageUtil;
 import pro.fazeclan.river.purrsue.util.TaggerUtil;
+import pro.fazeclan.river.purrsue.util.TeamUtil;
 
 public class GameListeners implements Listener, PacketListener {
 
@@ -38,6 +41,12 @@ public class GameListeners implements Listener, PacketListener {
         if (attacker.getFallDistance() < 1.5) return;
         var world = victim.getWorld();
         var values = GameUtil.getGame(world).getGameValues(world.getUID());
+        if (TeamUtil.areSameTeam(victim, attacker, values)) {
+            attacker.sendMessage(MessageUtil.getPluginMessage(
+                    "<red>You may not pass it on to someone on the same team as you!"
+            ));
+            return;
+        }
         TaggerUtil.setTagger(attacker, victim, values);
     }
 

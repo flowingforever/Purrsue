@@ -12,6 +12,7 @@ import pro.fazeclan.river.jarona.Jarona;
 import pro.fazeclan.river.purrsue.command.ConfigCommand;
 import pro.fazeclan.river.purrsue.command.TestCommand;
 import pro.fazeclan.river.purrsue.game.FreeForAllGame;
+import pro.fazeclan.river.purrsue.game.TeamGame;
 import pro.fazeclan.river.purrsue.listener.GameListeners;
 
 public final class Purrsue extends JavaPlugin {
@@ -31,6 +32,7 @@ public final class Purrsue extends JavaPlugin {
 
         var gameManager = Jarona.getInstance().getGameManager();
         gameManager.register(new FreeForAllGame());
+        gameManager.register(new TeamGame(2));
 
         var command = Commands.literal("purrsue")
                 .then(TestCommand.command())

@@ -20,25 +20,28 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import pro.fazeclan.river.jarona.game.GameWithMap;
 import pro.fazeclan.river.jarona.util.GameUtil;
-import pro.fazeclan.river.jarona.util.NicknameUtil;
 import pro.fazeclan.river.jarona.util.WorldlessLocation;
 import pro.fazeclan.river.purrsue.Purrsue;
-import pro.fazeclan.river.purrsue.util.GlowUtil;
-import pro.fazeclan.river.purrsue.util.ItemUtil;
-import pro.fazeclan.river.purrsue.util.SpinUtil;
-import pro.fazeclan.river.purrsue.util.TaggerUtil;
+import pro.fazeclan.river.purrsue.util.*;
 
 import java.io.File;
 import java.util.List;
 
-public class FreeForAllGame extends GameWithMap {
+public class TeamGame extends GameWithMap {
 
-    public FreeForAllGame() {
+    private final int teamCount;
+
+    public TeamGame(int teamCount) {
+        var key = Purrsue.getKey(teamCount + "_teams");
+        if (teamCount == 2) {
+            key = Purrsue.getKey("duels");
+        }
         super(
-                "<gradient:#7AE4FF:#38C6FF>Purrsue</gradient>: <#FF4C4F>FFA</#FF4C4F>",
-                Purrsue.getKey("ffa"),
+                "<gradient:#7AE4FF:#38C6FF>Purrsue</gradient>: <#FF6F47>Teams</#FF6F47>",
+                key,
                 2
         );
+        this.teamCount = teamCount;
     }
 
     @Override
@@ -46,6 +49,7 @@ public class FreeForAllGame extends GameWithMap {
         var config = YamlConfiguration.loadConfiguration(new File(world.getWorldFolder(), "map_config.yml"));
         var spawn = WorldlessLocation.deserialize("spawn", config).toLocation(world);
 
+        // prevent movement
         var movementBlocker = ItemType.GRAY_STAINED_GLASS_PANE.createItemStack(meta -> {
             meta.addAttributeModifier(Attribute.JUMP_STRENGTH, new AttributeModifier(
                     Purrsue.getKey("jump_strength"),
@@ -69,8 +73,11 @@ public class FreeForAllGame extends GameWithMap {
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, true, false, false));
         }
 
+        // choosing teams
         var values = getGameValues(world.getUID());
+        TeamUtil.splitPlayersIntoTeams(players, values, teamCount);
 
+        // start spinning
         SpinUtil.arrangePlayers(spawn, 3.0, players);
         int newTaggerAmount = (int) Math.floor(players.size() / 4.0) + 1;
         for (int i = 0; i < newTaggerAmount; i++) {
@@ -89,7 +96,9 @@ public class FreeForAllGame extends GameWithMap {
         var values = getGameValues(world.getUID());
         if (!values.getValue("round_started", false)) return;
 
-        if (TaggerUtil.getAlivePlayers(players).size() == 1) {
+        var alivePlayers = TaggerUtil.getAlivePlayers(players);
+        var firstPlayer = alivePlayers.getFirst();
+        if (alivePlayers.stream().allMatch(p -> TeamUtil.areSameTeam(p, firstPlayer, values))) {
             GameUtil.endGame(world);
             values.setValue("round_started", false);
             return;
@@ -110,12 +119,14 @@ public class FreeForAllGame extends GameWithMap {
     @Override
     public void end(World world, List<Player> players) {
         var winner = TaggerUtil.getAlivePlayers(players).getFirst();
+        var values = getGameValues(world.getUID());
+        var winningTeam = TeamUtil.getTeam(winner, values);
         var miniMessage = MiniMessage.miniMessage();
 
         for (Player player : players) {
             player.showTitle(Title.title(
-                    miniMessage.deserialize("<gray><<</gray> <head:" + winner.getUniqueId() + "> <gray>>></gray>"),
-                    miniMessage.deserialize("<green>" + NicknameUtil.getNickname(winner) + "<reset><green> wins!</green>")
+                    miniMessage.deserialize("<gray><<</gray> " + winningTeam.getIcon() + " <gray>>></gray>"),
+                    miniMessage.deserialize("<" + winningTeam.getColor().asHexString() + ">" + winningTeam.getName() + " wins!</" + winningTeam.getColor().asHexString() + ">")
             ));
 
             for (var passenger : player.getPassengers()) { // otherwise players will not be able to get teleported out
@@ -127,5 +138,4 @@ public class FreeForAllGame extends GameWithMap {
             GlowUtil.removeGlowOfPlayerToWorld(world, player);
         }
     }
-
 }
