@@ -93,7 +93,7 @@ public class TaggerUtil {
                                 0,
                                 values.getValue("initial_time_" + newTagger.getUniqueId(), defTime) - values.getValue("tick_" + newTagger.getUniqueId(), 0L)
                         ) / 20.0;
-                        td.text(mm.deserialize("<sprite:blocks:block/tnt_side> <red>" + String.format("%.1f", duration) + "s</red>"));
+                        td.text(mm.deserialize("<shadow:#420f0f:0.75><sprite:blocks:block/tnt_side> <red>" + String.format("%.1f", duration) + "s</red>"));
                     },
                     0,
                     2
