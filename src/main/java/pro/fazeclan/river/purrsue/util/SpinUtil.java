@@ -1,6 +1,9 @@
 package pro.fazeclan.river.purrsue.util;
 
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
@@ -26,7 +29,7 @@ public class SpinUtil {
         final var spins = 6 + Math.random() * 4;
         final var finalAngle = 360 * spins + Math.random() * 360;
         final var totalTicks = 140;
-        final var interpolatedTicks = 2;
+        final var interpolatedTicks = 1;
         final var itemDisplay = spawnDisplay(center, item);
 
         new BukkitRunnable() {
@@ -41,6 +44,7 @@ public class SpinUtil {
                     pointedPlayer.setGlowing(false);
                     end.accept(pointedPlayer);
                     cancel();
+                    return;
                 }
 
                 var progress = (double) tick / totalTicks;
@@ -49,7 +53,7 @@ public class SpinUtil {
                 var delta = targetAngle - currentAngleDeg;
                 currentAngleDeg = targetAngle;
 
-                rotateDisplay(delta, interpolatedTicks, itemDisplay);
+                rotateDisplay(-delta, interpolatedTicks, itemDisplay);
                 update();
                 tick++;
             }
@@ -71,7 +75,7 @@ public class SpinUtil {
 
                 pointedPlayer = newPointed;
             }
-        }.runTaskTimer(Purrsue.getInstance(), 0L, 1L);
+        }.runTaskTimer(Purrsue.getInstance(), 0L, interpolatedTicks);
     }
 
     public static void arrangePlayers(Location center, double radius, List<Player> players) {
@@ -102,7 +106,7 @@ public class SpinUtil {
             var transformation = d.getTransformation();
             d.setTransformation(new Transformation(
                     new Vector3f().add(0f, 0.2f, 0f),
-                    new Quaternionf().rotateXYZ((float) Math.toRadians(90), 0, (float) Math.toRadians(90)),
+                    new Quaternionf(-0.271, 0.653, 0.653, 0.271),
                     transformation.getScale().mul(1.5f),
                     transformation.getRightRotation()
             ));
