@@ -117,6 +117,7 @@ public class TaggerUtil {
                 }
             }
             oldTagger.removePotionEffect(PotionEffectType.GLOWING);
+            GlowUtil.removeGlowOfPlayerToWorld(world, oldTagger);
 
             // actually removing items
             var oldTaggerInventory = oldTagger.getInventory();
@@ -127,6 +128,13 @@ public class TaggerUtil {
                     oldTaggerInventory.removeItemAnySlot(itemStack);
                 }
             });
+        } else {
+            var glow = new PotionEffect(PotionEffectType.GLOWING, 20, 0, true, false, true);
+            for (var player : world.getPlayers()) {
+                if (player.hasPotionEffect(PotionEffectType.GLOWING)) continue;
+
+                player.addPotionEffect(glow);
+            }
         }
     }
 
