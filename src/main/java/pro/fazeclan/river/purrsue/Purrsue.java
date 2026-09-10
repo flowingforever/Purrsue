@@ -32,7 +32,9 @@ public final class Purrsue extends JavaPlugin {
 
         var gameManager = Jarona.getInstance().getGameManager();
         gameManager.register(new FreeForAllGame());
-        gameManager.register(new TeamGame(2));
+        for (int i = 2; i < 9; i++) {
+            gameManager.register(new TeamGame(i));
+        }
 
         var command = Commands.literal("purrsue")
                 .then(TestCommand.command())

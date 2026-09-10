@@ -24,3 +24,6 @@ wielder: # weapon wielder knockback multipliers
 player: # regular player knockback multipliers
   horizontal-knockback-multiplier: 0.9
   vertical-knockback-multiplier: 1
+
+# The additional vertical velocity that bounce pads (pistons or copper grates) apply to the player
+pad-boost: 1

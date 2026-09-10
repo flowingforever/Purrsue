@@ -1,5 +1,6 @@
 package pro.fazeclan.river.purrsue.listener;
 
+import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import com.github.retrooper.packetevents.event.PacketListener;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -9,6 +10,11 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPl
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
+import org.bukkit.SoundCategory;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockType;
+import org.bukkit.block.data.Powerable;
+import org.bukkit.block.data.type.Piston;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.WindCharge;
 import org.bukkit.event.EventHandler;
@@ -16,7 +22,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.player.PlayerInputEvent;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 import pro.fazeclan.river.jarona.util.GameUtil;
 import pro.fazeclan.river.purrsue.Purrsue;
 import pro.fazeclan.river.purrsue.util.MessageUtil;
@@ -91,6 +99,38 @@ public class GameListeners implements Listener, PacketListener {
 
             packet.setKnockback(kb.multiply(multiplier));
             event.markForReEncode(true);
+        }
+    }
+
+    @EventHandler
+    private void onJumpAboveBlock(PlayerJumpEvent event) {
+        var user = event.getPlayer();
+        if (!TaggerUtil.checkEntityInProperWorld(user)) return;
+        var block = user.getLocation().clone().subtract(0.0, 0.1, 0.0).getBlock();
+        if (block.getType().equals(Material.PISTON) || block.getType().getKey().value().contains("grate")) {
+            var config = plugin.getConfig();
+            user.setVelocity(user.getVelocity().clone().add(new Vector(0.0, config.getDouble("pad-boost", 1.0), 0.0)));
+            user.getWorld().playSound(user, "minecraft:block.piston.extend", SoundCategory.PLAYERS, 1f, 1f);
+
+            if (block.getType().equals(Material.PISTON)) {
+                var blockData = (Piston) block.getBlockData();
+                blockData.setExtended(true);
+                block.setBlockData(blockData);
+
+                var world = block.getWorld();
+                var headLoc = block.getLocation().clone().add(0.0, 1.0, 0.0);
+                world.setBlockData(headLoc, BlockType.PISTON_HEAD.createBlockData(meta -> meta.setFacing(BlockFace.UP)));
+
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                    if (!block.getLocation().isWorldLoaded()) {
+                        return;
+                    }
+
+                    blockData.setExtended(false);
+                    block.setBlockData(blockData);
+                    world.setBlockData(headLoc, BlockType.AIR.createBlockData());
+                }, 40);
+            }
         }
     }
 

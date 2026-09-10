@@ -9,16 +9,12 @@ As of right now, the game is playable! Though, it is missing a lot of features t
 
 ## Plans
 
-- [ ] Bounce Pads
-  - [ ] Copper Grates
-  - [ ] Pistons
-- [ ] Teams Mode
-  - [ ] Assign Teams
+- [X] Teams Mode
+  - [X] Assign Teams
     - [ ] Parties in the queue are randomly selected for teams first
   - [ ] Allow for dueling other teams
-  - [ ] Make teams visibly differentiate
+  - [X] Make teams visibly differentiate
     - [ ] Little indicator for teammates
-    - [ ] Team counts are limited by amount of Minecraft Team colors (maybe?)
 - [ ] Further Out
   - [ ] Game Modifiers
   - [ ] Round Modifiers (Still iffy on this idea, personally)
